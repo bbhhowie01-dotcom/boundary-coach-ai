@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --cream: #f6f3ee;
+  --cream-deep: #ebe6dc;
+  --warm-gray: #6a645c;
+  --warm-ink: #3a3632;
+  --soft-blue: #c9d9e6;
+  --soft-blue-deep: #8fadc4;
+  --soft-green: #d5e2d4;
+  --soft-green-deep: #8fad95;
+  --mist: #f0ebe3;
+  --surface: rgba(255, 252, 248, 0.82);
+  --background: var(--cream);
+  --foreground: var(--warm-ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-warm-gray: var(--warm-gray);
+  --color-warm-ink: var(--warm-ink);
+  --color-soft-blue: var(--soft-blue);
+  --color-soft-blue-deep: var(--soft-blue-deep);
+  --color-soft-green: var(--soft-green);
+  --color-soft-green-deep: var(--soft-green-deep);
+  --color-mist: var(--mist);
+  --color-surface: var(--surface);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+}
+
+::selection {
+  background: rgb(143 173 196 / 0.35);
+}
+
+@keyframes breathe-in {
+  from {
+    transform: scale(0.72);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+}
+
+@keyframes breathe-hold {
+  from,
+  to {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+}
+
+@keyframes breathe-out {
+  from {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  to {
+    transform: scale(0.72);
+    opacity: 0.55;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.55s ease-out both;
+}
+
+.breath-inhale {
+  animation: breathe-in 4s ease-in-out forwards;
+}
+
+.breath-hold {
+  animation: breathe-hold 4s linear forwards;
+}
+
+.breath-exhale {
+  animation: breathe-out 6s ease-in-out forwards;
+}
