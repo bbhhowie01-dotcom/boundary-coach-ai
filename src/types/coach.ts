@@ -218,10 +218,13 @@ export interface CoachAiErrorResponse {
   error: string;
 }
 
+export type FormalRepliesCache = Partial<Record<ReplyStyle, string>>;
+
 export interface JourneyAiCache {
   selfUnderstanding?: SelfUnderstandingResult;
   mutualUnderstanding?: MutualUnderstandingResult;
   messageAnalysis?: MessageAnalysisResult;
-  formalReply?: FormalReplyResult;
+  /** 依風格快取的正式回覆，方便對照其他版本 */
+  formalReplies?: FormalRepliesCache;
   emotionFollowup?: EmotionFollowupResult;
 }

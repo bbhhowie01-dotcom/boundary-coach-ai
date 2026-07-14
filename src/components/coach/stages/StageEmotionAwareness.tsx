@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CompanionBubble } from "@/components/coach/CompanionBubble";
 import { JourneyShell } from "@/components/coach/JourneyShell";
 import { OptionChip } from "@/components/coach/OptionChip";
+import { ReferencePanel } from "@/components/coach/ReferencePanel";
 import { SoftButton } from "@/components/coach/SoftButton";
 import { useCoachStream } from "@/components/coach/hooks/useCoachStream";
 import {
@@ -26,6 +27,20 @@ type Props = {
   onContinue: () => void;
 };
 
+/** 把先前貼上的訊息拆成可點選的句子／行，方便當參考 */
+function splitMessageCandidates(message: string): string[] {
+  const parts = message
+    .split(/\n+|(?<=[。！？!?；;…])/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
+  const unique: string[] = [];
+  for (const part of parts) {
+    if (!unique.includes(part)) unique.push(part);
+  }
+  return unique;
+}
+
 export function StageEmotionAwareness({
   session,
   mostImpactfulLine = "",
@@ -44,6 +59,11 @@ export function StageEmotionAwareness({
   );
   const requested = useRef(false);
   const followup = text || cachedFollowup || "";
+
+  const candidates = useMemo(
+    () => splitMessageCandidates(session.message),
+    [session.message],
+  );
 
   useEffect(() => {
     if (step !== "touch") return;
@@ -95,15 +115,60 @@ export function StageEmotionAwareness({
           <CompanionBubble>
             {`如果要挑一句最讓你在意的話，
 你會選哪一句？
-不用選得很精準，感覺到的那句就好。`}
+下面有你稍早帶來的訊息，可以直接點選，
+也可以自己改寫。`}
           </CompanionBubble>
-          <textarea
-            value={mostImpactfulLine}
-            onChange={(e) => onLineChange(e.target.value)}
-            rows={4}
-            placeholder="把那一句貼在這裡，或用自己的話寫下。"
-            className="w-full resize-y rounded-3xl border border-cream-deep bg-white/70 px-4 py-3 text-sm leading-7 outline-none focus:border-soft-blue-deep/50 focus:ring-2 focus:ring-soft-blue/40"
-          />
+
+          <ReferencePanel
+            label={`來自「${session.senderName}」的原始訊息（供參考）`}
+          >
+            {session.message}
+          </ReferencePanel>
+
+          {candidates.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold tracking-wide text-warm-gray">
+                點一下，就能選入最在意的那句
+              </p>
+              <div className="flex flex-col gap-2">
+                {candidates.map((candidate) => {
+                  const selected = mostImpactfulLine.trim() === candidate;
+                  return (
+                    <button
+                      key={candidate}
+                      type="button"
+                      onClick={() => onLineChange(candidate)}
+                      className={`rounded-2xl border px-4 py-3 text-left text-sm leading-7 transition duration-200 ${
+                        selected
+                          ? "border-soft-green-deep/40 bg-soft-green/50 text-warm-ink"
+                          : "border-cream-deep bg-white/55 text-warm-gray hover:border-soft-blue/50 hover:bg-white/80"
+                      }`}
+                    >
+                      {candidate}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label
+              htmlFor="impactful-line"
+              className="mb-2 block text-sm font-semibold text-warm-ink"
+            >
+              你最在意的是這一句
+            </label>
+            <textarea
+              id="impactful-line"
+              value={mostImpactfulLine}
+              onChange={(e) => onLineChange(e.target.value)}
+              rows={4}
+              placeholder="點選上方句子，或用自己的話寫下。"
+              className="w-full resize-y rounded-3xl border border-cream-deep bg-white/70 px-4 py-3 text-sm leading-7 outline-none focus:border-soft-blue-deep/50 focus:ring-2 focus:ring-soft-blue/40"
+            />
+          </div>
+
           <div className="flex justify-center">
             <SoftButton
               onClick={() => setStep("touch")}
@@ -117,6 +182,10 @@ export function StageEmotionAwareness({
 
       {step === "touch" && (
         <>
+          <ReferencePanel label="你剛剛選出最在意的一句">
+            {mostImpactfulLine}
+          </ReferencePanel>
+
           <CompanionBubble>
             {loading && !followup
               ? "我在聽你說…"

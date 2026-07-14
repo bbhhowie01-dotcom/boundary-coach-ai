@@ -209,7 +209,6 @@ export function CoachApp() {
                   patchSession({ selectedReplyStyle })
                 }
                 onContinue={() => {
-                  setAiCache((c) => ({ ...c, formalReply: undefined }));
                   goNext();
                 }}
               />
@@ -218,9 +217,18 @@ export function CoachApp() {
             {stage === 13 && (
               <StageFormalReply
                 session={session}
-                cached={aiCache.formalReply}
-                onCached={(formalReply) =>
-                  setAiCache((c) => ({ ...c, formalReply }))
+                cachedReplies={aiCache.formalReplies}
+                onStyleChange={(selectedReplyStyle: ReplyStyle) =>
+                  patchSession({ selectedReplyStyle })
+                }
+                onReplyCached={(style, reply) =>
+                  setAiCache((c) => ({
+                    ...c,
+                    formalReplies: {
+                      ...c.formalReplies,
+                      [style]: reply,
+                    },
+                  }))
                 }
                 onContinue={goNext}
               />
