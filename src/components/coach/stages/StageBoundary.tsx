@@ -5,11 +5,11 @@ import { JourneyShell } from "@/components/coach/JourneyShell";
 import { SoftButton } from "@/components/coach/SoftButton";
 import { BOUNDARY_REMINDERS } from "@/lib/stages/staticContent";
 
-type Props = { onContinue: () => void };
+type Props = { onContinue: () => void; onBack?: () => void };
 
-export function StageBoundary({ onContinue }: Props) {
+export function StageBoundary({ onContinue, onBack }: Props) {
   return (
-    <JourneyShell stageId={10} title="界線建立">
+    <JourneyShell stageId={10} title="界線建立" onBack={onBack}>
       <CompanionBubble>
         在往下看訊息、想怎麼回之前，我想先輕輕放幾句話在這裡。
       </CompanionBubble>

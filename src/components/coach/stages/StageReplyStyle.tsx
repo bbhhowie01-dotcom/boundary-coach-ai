@@ -12,6 +12,7 @@ type Props = {
   addressTerm: string;
   onStyleChange: (style: ReplyStyle) => void;
   onContinue: () => void;
+  onBack?: () => void;
 };
 
 export function StageReplyStyle({
@@ -20,12 +21,14 @@ export function StageReplyStyle({
   addressTerm,
   onStyleChange,
   onContinue,
+  onBack,
 }: Props) {
   return (
     <JourneyShell
       stageId={12}
       title="你想用什麼方式回應？"
       subtitle="正式的回覆文字，我們下一步再一起慢慢寫。"
+      onBack={onBack}
     >
       <CompanionBubble>
         {`這段訊息來自「${senderName}」。

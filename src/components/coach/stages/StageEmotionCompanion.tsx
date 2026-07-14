@@ -17,6 +17,7 @@ type Props = {
   onChange: (next: FirstFeeling[]) => void;
   onOtherChange: (value: string) => void;
   onContinue: () => void;
+  onBack?: () => void;
 };
 
 export function StageEmotionCompanion({
@@ -25,6 +26,7 @@ export function StageEmotionCompanion({
   onChange,
   onOtherChange,
   onContinue,
+  onBack,
 }: Props) {
   const canContinue =
     selected.length > 0 &&
@@ -35,6 +37,7 @@ export function StageEmotionCompanion({
       stageId={4}
       title="情緒陪伴"
       subtitle={MULTI_SELECT_HINT}
+      onBack={onBack}
     >
       <CompanionBubble>
         {`我有點好奇。

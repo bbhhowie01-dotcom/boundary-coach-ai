@@ -8,11 +8,17 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   onContinue: () => void;
+  onBack?: () => void;
 };
 
-export function StageSelfAdvocacy({ value, onChange, onContinue }: Props) {
+export function StageSelfAdvocacy({
+  value,
+  onChange,
+  onContinue,
+  onBack,
+}: Props) {
   return (
-    <JourneyShell stageId={8} title="替自己說話">
+    <JourneyShell stageId={8} title="替自己說話" onBack={onBack}>
       <CompanionBubble>
         {`如果有一個真正理解你的人坐在旁邊，
 你希望對方知道什麼？

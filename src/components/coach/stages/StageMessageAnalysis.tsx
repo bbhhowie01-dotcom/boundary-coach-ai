@@ -12,6 +12,7 @@ type Props = {
   cached?: MessageAnalysisResult;
   onCached: (data: MessageAnalysisResult) => void;
   onContinue: () => void;
+  onBack?: () => void;
 };
 
 export function StageMessageAnalysis({
@@ -19,6 +20,7 @@ export function StageMessageAnalysis({
   cached,
   onCached,
   onContinue,
+  onBack,
 }: Props) {
   const { run, loading, error } = useCoachAi();
   const requested = useRef(false);
@@ -39,6 +41,7 @@ export function StageMessageAnalysis({
       stageId={11}
       title="訊息理解"
       subtitle="現在，我們才一起溫柔地看看這則訊息可能承載了什麼。"
+      onBack={onBack}
     >
       {loading && !cached ? (
         <CompanionBubble>我在溫柔地閱讀這則訊息…</CompanionBubble>

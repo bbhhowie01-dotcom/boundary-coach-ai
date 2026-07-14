@@ -12,6 +12,7 @@ type Props = {
   cached?: MutualUnderstandingResult;
   onCached: (data: MutualUnderstandingResult) => void;
   onContinue: () => void;
+  onBack?: () => void;
 };
 
 export function StageMutualUnderstanding({
@@ -19,6 +20,7 @@ export function StageMutualUnderstanding({
   cached,
   onCached,
   onContinue,
+  onBack,
 }: Props) {
   const { run, loading, error } = useCoachAi();
   const requested = useRef(false);
@@ -39,6 +41,7 @@ export function StageMutualUnderstanding({
       stageId={9}
       title="雙方理解"
       subtitle="現在我們才開始整理雙方可能的需要。兩邊都可以同時成立。"
+      onBack={onBack}
     >
       {loading && !cached ? (
         <CompanionBubble>我在慢慢整理雙方可能的需要…</CompanionBubble>

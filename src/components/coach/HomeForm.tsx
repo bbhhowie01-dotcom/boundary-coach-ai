@@ -9,24 +9,43 @@ import {
 } from "@/lib/stages/staticContent";
 import type { RelationshipType } from "@/types/coach";
 
-type HomeFormProps = {
-  onStart: (data: {
-    relationshipType: RelationshipType;
-    relationshipDescription?: string;
-    senderName: string;
-    addressTerm: string;
-    message: string;
-  }) => void;
+export type HomeFormValues = {
+  relationshipType: RelationshipType;
+  relationshipDescription?: string;
+  senderName: string;
+  addressTerm: string;
+  message: string;
 };
 
-export function HomeForm({ onStart }: HomeFormProps) {
+type HomeFormProps = {
+  onStart: (data: HomeFormValues) => void;
+  initialValues?: Partial<HomeFormValues> | null;
+};
+
+export function HomeForm({ onStart, initialValues }: HomeFormProps) {
   const [relationshipType, setRelationshipType] =
-    useState<RelationshipType | null>(null);
-  const [relationshipDescription, setRelationshipDescription] = useState("");
-  const [senderName, setSenderName] = useState("");
-  const [addressTerm, setAddressTerm] = useState("");
-  const [message, setMessage] = useState("");
-  const [addressTouched, setAddressTouched] = useState(false);
+    useState<RelationshipType | null>(initialValues?.relationshipType ?? null);
+  const [relationshipDescription, setRelationshipDescription] = useState(
+    initialValues?.relationshipDescription ?? "",
+  );
+  const [senderName, setSenderName] = useState(initialValues?.senderName ?? "");
+  const [addressTerm, setAddressTerm] = useState(
+    initialValues?.addressTerm ?? "",
+  );
+  const [message, setMessage] = useState(initialValues?.message ?? "");
+  const [addressTouched, setAddressTouched] = useState(
+    Boolean(initialValues?.addressTerm),
+  );
+
+  useEffect(() => {
+    if (!initialValues) return;
+    setRelationshipType(initialValues.relationshipType ?? null);
+    setRelationshipDescription(initialValues.relationshipDescription ?? "");
+    setSenderName(initialValues.senderName ?? "");
+    setAddressTerm(initialValues.addressTerm ?? "");
+    setMessage(initialValues.message ?? "");
+    setAddressTouched(Boolean(initialValues.addressTerm));
+  }, [initialValues]);
 
   useEffect(() => {
     if (!relationshipType || addressTouched) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CompanionBubble } from "@/components/coach/CompanionBubble";
 import { JourneyShell } from "@/components/coach/JourneyShell";
 import { OptionChip } from "@/components/coach/OptionChip";
@@ -25,21 +25,8 @@ type Props = {
   onFollowupCached: (message: string) => void;
   cachedFollowup?: string;
   onContinue: () => void;
+  onBack?: () => void;
 };
-
-/** 把先前貼上的訊息拆成可點選的句子／行，方便當參考 */
-function splitMessageCandidates(message: string): string[] {
-  const parts = message
-    .split(/\n+|(?<=[。！？!?；;…])/)
-    .map((part) => part.trim())
-    .filter((part) => part.length > 0);
-
-  const unique: string[] = [];
-  for (const part of parts) {
-    if (!unique.includes(part)) unique.push(part);
-  }
-  return unique;
-}
 
 export function StageEmotionAwareness({
   session,
@@ -52,6 +39,7 @@ export function StageEmotionAwareness({
   onFollowupCached,
   cachedFollowup,
   onContinue,
+  onBack,
 }: Props) {
   const { text, loading, error, stream, setText } = useCoachStream();
   const [step, setStep] = useState<"line" | "touch">(
@@ -59,11 +47,6 @@ export function StageEmotionAwareness({
   );
   const requested = useRef(false);
   const followup = text || cachedFollowup || "";
-
-  const candidates = useMemo(
-    () => splitMessageCandidates(session.message),
-    [session.message],
-  );
 
   useEffect(() => {
     if (step !== "touch") return;
@@ -104,19 +87,28 @@ export function StageEmotionAwareness({
     touchPoints.length > 0 &&
     (!touchPoints.includes("其他") || touchPointOther.trim().length > 0);
 
+  function handleBack() {
+    if (step === "touch") {
+      setStep("line");
+      return;
+    }
+    onBack?.();
+  }
+
   return (
     <JourneyShell
       stageId={5}
       title="情緒覺察"
       subtitle={`我們一起慢慢看，不用急著下結論。${MULTI_SELECT_HINT}`}
+      onBack={handleBack}
     >
       {step === "line" && (
         <>
           <CompanionBubble>
             {`如果要挑一句最讓你在意的話，
 你會選哪一句？
-下面有你稍早帶來的訊息，可以直接點選，
-也可以自己改寫。`}
+下面有你稍早帶來的訊息，可以參考，
+再用自己的話寫下最在意的那一句。`}
           </CompanionBubble>
 
           <ReferencePanel
@@ -124,33 +116,6 @@ export function StageEmotionAwareness({
           >
             {session.message}
           </ReferencePanel>
-
-          {candidates.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold tracking-wide text-warm-gray">
-                點一下，就能選入最在意的那句
-              </p>
-              <div className="flex flex-col gap-2">
-                {candidates.map((candidate) => {
-                  const selected = mostImpactfulLine.trim() === candidate;
-                  return (
-                    <button
-                      key={candidate}
-                      type="button"
-                      onClick={() => onLineChange(candidate)}
-                      className={`rounded-2xl border px-4 py-3 text-left text-sm leading-7 transition duration-200 ${
-                        selected
-                          ? "border-soft-green-deep/40 bg-soft-green/50 text-warm-ink"
-                          : "border-cream-deep bg-white/55 text-warm-gray hover:border-soft-blue/50 hover:bg-white/80"
-                      }`}
-                    >
-                      {candidate}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           <div>
             <label
@@ -164,7 +129,7 @@ export function StageEmotionAwareness({
               value={mostImpactfulLine}
               onChange={(e) => onLineChange(e.target.value)}
               rows={4}
-              placeholder="點選上方句子，或用自己的話寫下。"
+              placeholder="對照上方訊息，把最在意的那一句寫在這裡。"
               className="w-full resize-y rounded-3xl border border-cream-deep bg-white/70 px-4 py-3 text-sm leading-7 outline-none focus:border-soft-blue-deep/50 focus:ring-2 focus:ring-soft-blue/40"
             />
           </div>

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { ProgressDots } from "@/components/coach/ProgressDots";
+import { SoftButton } from "@/components/coach/SoftButton";
 import { TOTAL_STAGES } from "@/lib/stages/config";
 
 type JourneyShellProps = {
@@ -9,6 +10,7 @@ type JourneyShellProps = {
   title: string;
   subtitle?: string;
   children: ReactNode;
+  onBack?: () => void;
 };
 
 export function JourneyShell({
@@ -16,6 +18,7 @@ export function JourneyShell({
   title,
   subtitle,
   children,
+  onBack,
 }: JourneyShellProps) {
   return (
     <div className="mx-auto w-full max-w-xl animate-fade-up">
@@ -34,6 +37,13 @@ export function JourneyShell({
         )}
       </div>
       <div className="space-y-5">{children}</div>
+      {onBack && (
+        <div className="mt-6 flex justify-center">
+          <SoftButton variant="ghost" onClick={onBack}>
+            回到上一頁
+          </SoftButton>
+        </div>
+      )}
     </div>
   );
 }

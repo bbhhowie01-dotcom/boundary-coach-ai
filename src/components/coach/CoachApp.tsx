@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { HomeForm } from "@/components/coach/HomeForm";
+import { HomeForm, type HomeFormValues } from "@/components/coach/HomeForm";
 import { SoftButton } from "@/components/coach/SoftButton";
 import { StageBodyCare } from "@/components/coach/stages/StageBodyCare";
 import { StageBoundary } from "@/components/coach/stages/StageBoundary";
@@ -21,7 +21,6 @@ import type {
   BodySensation,
   CoachSession,
   JourneyAiCache,
-  RelationshipType,
   ReplyStyle,
 } from "@/types/coach";
 
@@ -44,27 +43,39 @@ export function CoachApp() {
     setStage((s) => Math.min(s + 1, 14));
   }, []);
 
-  function handleStart(data: {
-    relationshipType: RelationshipType;
-    relationshipDescription?: string;
-    senderName: string;
-    addressTerm: string;
-    message: string;
-  }) {
-    setSession({
-      sessionId: createSessionId(),
-      startedAt: new Date().toISOString(),
+  const goBack = useCallback(() => {
+    setStage((s) => {
+      if (s <= 1) {
+        setView("home");
+        return 1;
+      }
+      return s - 1;
+    });
+  }, []);
+
+  function handleStart(data: HomeFormValues) {
+    setSession((prev) => ({
+      sessionId: prev?.sessionId ?? createSessionId(),
+      startedAt: prev?.startedAt ?? new Date().toISOString(),
       relationshipType: data.relationshipType,
       relationshipDescription: data.relationshipDescription,
       senderName: data.senderName,
       addressTerm: data.addressTerm,
       message: data.message,
-      bodySensations: [],
-      firstFeelings: [],
-      touchPoints: [],
-      worries: [],
-    });
-    setAiCache({});
+      bodySensations: prev?.bodySensations ?? [],
+      firstFeelings: prev?.firstFeelings ?? [],
+      firstFeelingOther: prev?.firstFeelingOther,
+      mostImpactfulLine: prev?.mostImpactfulLine,
+      touchPoints: prev?.touchPoints ?? [],
+      touchPointOther: prev?.touchPointOther,
+      worries: prev?.worries ?? [],
+      worryOther: prev?.worryOther,
+      selfAdvocacy: prev?.selfAdvocacy,
+      selectedReplyStyle: prev?.selectedReplyStyle,
+    }));
+    if (!session) {
+      setAiCache({});
+    }
     setStage(1);
     setView("journey");
   }
@@ -80,12 +91,24 @@ export function CoachApp() {
     setSession((prev) => (prev ? { ...prev, ...patch } : prev));
   }
 
+  const homeInitial = session
+    ? {
+        relationshipType: session.relationshipType,
+        relationshipDescription: session.relationshipDescription,
+        senderName: session.senderName,
+        addressTerm: session.addressTerm,
+        message: session.message,
+      }
+    : null;
+
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-10 sm:px-6 lg:px-8">
       <Atmosphere />
 
       <div className="relative z-10 flex flex-1 flex-col">
-        {view === "home" && <HomeForm onStart={handleStart} />}
+        {view === "home" && (
+          <HomeForm onStart={handleStart} initialValues={homeInitial} />
+        )}
 
         {view === "journey" && session && (
           <>
@@ -97,7 +120,9 @@ export function CoachApp() {
               </div>
             )}
 
-            {stage === 1 && <StageCatch onContinue={goNext} />}
+            {stage === 1 && (
+              <StageCatch onContinue={goNext} onBack={goBack} />
+            )}
 
             {stage === 2 && (
               <StageBodyCare
@@ -106,10 +131,13 @@ export function CoachApp() {
                   patchSession({ bodySensations })
                 }
                 onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
-            {stage === 3 && <StageSettling onContinue={goNext} />}
+            {stage === 3 && (
+              <StageSettling onContinue={goNext} onBack={goBack} />
+            )}
 
             {stage === 4 && (
               <StageEmotionCompanion
@@ -120,6 +148,7 @@ export function CoachApp() {
                   patchSession({ firstFeelingOther })
                 }
                 onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
@@ -144,6 +173,7 @@ export function CoachApp() {
                   }))
                 }
                 onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
@@ -154,6 +184,7 @@ export function CoachApp() {
                 onChange={(worries) => patchSession({ worries })}
                 onOtherChange={(worryOther) => patchSession({ worryOther })}
                 onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
@@ -165,6 +196,7 @@ export function CoachApp() {
                   setAiCache((c) => ({ ...c, selfUnderstanding }))
                 }
                 onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
@@ -173,6 +205,7 @@ export function CoachApp() {
                 value={session.selfAdvocacy ?? ""}
                 onChange={(selfAdvocacy) => patchSession({ selfAdvocacy })}
                 onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
@@ -184,10 +217,13 @@ export function CoachApp() {
                   setAiCache((c) => ({ ...c, mutualUnderstanding }))
                 }
                 onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
-            {stage === 10 && <StageBoundary onContinue={goNext} />}
+            {stage === 10 && (
+              <StageBoundary onContinue={goNext} onBack={goBack} />
+            )}
 
             {stage === 11 && (
               <StageMessageAnalysis
@@ -197,6 +233,7 @@ export function CoachApp() {
                   setAiCache((c) => ({ ...c, messageAnalysis }))
                 }
                 onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
@@ -208,9 +245,8 @@ export function CoachApp() {
                 onStyleChange={(selectedReplyStyle: ReplyStyle) =>
                   patchSession({ selectedReplyStyle })
                 }
-                onContinue={() => {
-                  goNext();
-                }}
+                onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
@@ -231,10 +267,13 @@ export function CoachApp() {
                   }))
                 }
                 onContinue={goNext}
+                onBack={goBack}
               />
             )}
 
-            {stage === 14 && <StageClosing onRestart={handleRestart} />}
+            {stage === 14 && (
+              <StageClosing onRestart={handleRestart} onBack={goBack} />
+            )}
           </>
         )}
       </div>

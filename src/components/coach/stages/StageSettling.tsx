@@ -8,11 +8,11 @@ import {
   STAGE_3_REMINDERS,
 } from "@/lib/stages/staticContent";
 
-type Props = { onContinue: () => void };
+type Props = { onContinue: () => void; onBack?: () => void };
 
-export function StageSettling({ onContinue }: Props) {
+export function StageSettling({ onContinue, onBack }: Props) {
   return (
-    <JourneyShell stageId={3} title="心理安頓">
+    <JourneyShell stageId={3} title="心理安頓" onBack={onBack}>
       <CompanionBubble>{STAGE_3_MESSAGE}</CompanionBubble>
       <CompanionBubble className="bg-soft-green/30 border-soft-green/40">
         {STAGE_3_REMINDERS.join("\n")}

@@ -22,6 +22,7 @@ type Props = {
   onStyleChange: (style: ReplyStyle) => void;
   onReplyCached: (style: ReplyStyle, reply: string) => void;
   onContinue: () => void;
+  onBack?: () => void;
 };
 
 export function StageFormalReply({
@@ -30,6 +31,7 @@ export function StageFormalReply({
   onStyleChange,
   onReplyCached,
   onContinue,
+  onBack,
 }: Props) {
   const initialStyle = session.selectedReplyStyle ?? "gentle";
   const { text, loading, error, stream, setText, reset } = useCoachStream();
@@ -107,6 +109,7 @@ export function StageFormalReply({
       stageId={13}
       title="這則回覆，可以這樣說"
       subtitle={`寫給「${session.senderName}」· 以「${session.addressTerm}」開頭 · 先理解與感謝，再表達自己`}
+      onBack={onBack}
     >
       <CompanionBubble>
         {`我會先幫你寫出真誠的理解與感謝。

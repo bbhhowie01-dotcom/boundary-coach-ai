@@ -17,6 +17,7 @@ type Props = {
   onChange: (next: WorryConcern[]) => void;
   onOtherChange: (value: string) => void;
   onContinue: () => void;
+  onBack?: () => void;
 };
 
 export function StageEmotionSource({
@@ -25,6 +26,7 @@ export function StageEmotionSource({
   onChange,
   onOtherChange,
   onContinue,
+  onBack,
 }: Props) {
   const canContinue =
     selected.length > 0 &&
@@ -35,6 +37,7 @@ export function StageEmotionSource({
       stageId={6}
       title="情緒來源"
       subtitle={MULTI_SELECT_HINT}
+      onBack={onBack}
     >
       <CompanionBubble>
         {`當這件事情發生時，

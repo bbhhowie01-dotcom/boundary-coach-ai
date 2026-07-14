@@ -12,6 +12,7 @@ type Props = {
   cached?: SelfUnderstandingResult;
   onCached: (data: SelfUnderstandingResult) => void;
   onContinue: () => void;
+  onBack?: () => void;
 };
 
 export function StageSelfUnderstanding({
@@ -19,6 +20,7 @@ export function StageSelfUnderstanding({
   cached,
   onCached,
   onContinue,
+  onBack,
 }: Props) {
   const { text, loading, error, stream, setText } = useCoachStream();
   const requested = useRef(false);
@@ -44,7 +46,7 @@ export function StageSelfUnderstanding({
   }, [cached, session, stream, onCached, setText]);
 
   return (
-    <JourneyShell stageId={7} title="自我理解">
+    <JourneyShell stageId={7} title="自我理解" onBack={onBack}>
       <CompanionBubble>
         {loading && !display
           ? "我在慢慢整理你剛剛說的話…"

@@ -17,14 +17,16 @@ type Props = {
   selected: BodySensation[];
   onChange: (next: BodySensation[]) => void;
   onContinue: () => void;
+  onBack?: () => void;
 };
 
-export function StageBodyCare({ selected, onChange, onContinue }: Props) {
+export function StageBodyCare({ selected, onChange, onContinue, onBack }: Props) {
   return (
     <JourneyShell
       stageId={2}
       title="你的身體還好嗎？"
       subtitle={`先不用談情緒。我們先看看身體現在怎麼樣。${MULTI_SELECT_HINT}`}
+      onBack={onBack}
     >
       <div className="flex flex-wrap gap-2">
         {BODY_SENSATION_OPTIONS.map((option) => (
