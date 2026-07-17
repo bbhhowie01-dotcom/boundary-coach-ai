@@ -41,6 +41,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# audio commercial license proofs (local only)
+/public/audio/*.pdf
+
 ._vercel_whoami*
 
 .env.local
