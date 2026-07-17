@@ -1,6 +1,7 @@
 import type {
   BodySensation,
   FirstFeeling,
+  ParentChildRole,
   RelationshipType,
   ReplyStyle,
   TouchPoint,
@@ -9,6 +10,7 @@ import type {
 
 export const RELATIONSHIP_OPTIONS = [
   "父母",
+  "親子",
   "伴侶",
   "前任",
   "親戚",
@@ -17,7 +19,16 @@ export const RELATIONSHIP_OPTIONS = [
   "主管",
   "客戶",
   "其他",
-] as const;
+] as const satisfies readonly RelationshipType[];
+
+export const PARENT_CHILD_ROLE_OPTIONS: ParentChildRole[] = [
+  "我是子女，訊息來自父母",
+  "我是父母，訊息來自子女",
+  "我是媽媽，訊息來自子女",
+  "我是爸爸，訊息來自子女",
+  "我是成年子女，訊息來自父母",
+  "其他親子情境",
+];
 
 export const BODY_SENSATION_OPTIONS: BodySensation[] = [
   "呼吸有點急",
@@ -183,10 +194,28 @@ export const BREATH_CONFIG = {
 };
 
 /** 依關係類型給出稱謂建議（可再由使用者修改） */
-export function suggestAddressTerm(type: RelationshipType): string {
+export function suggestAddressTerm(
+  type: RelationshipType,
+  parentChildRole?: ParentChildRole,
+): string {
   switch (type) {
     case "父母":
       return "爸／媽";
+    case "親子":
+      if (
+        parentChildRole === "我是子女，訊息來自父母" ||
+        parentChildRole === "我是成年子女，訊息來自父母"
+      ) {
+        return "爸／媽";
+      }
+      if (
+        parentChildRole === "我是父母，訊息來自子女" ||
+        parentChildRole === "我是媽媽，訊息來自子女" ||
+        parentChildRole === "我是爸爸，訊息來自子女"
+      ) {
+        return "";
+      }
+      return "";
     case "伴侶":
       return "親愛的";
     case "主管":
@@ -201,6 +230,51 @@ export function suggestAddressTerm(type: RelationshipType): string {
     default:
       return "";
   }
+}
+
+/** 結果頁／摘要顯示用的關係背景文字 */
+export function formatRelationshipBackground(input: {
+  relationshipType: RelationshipType;
+  parentChildRole?: ParentChildRole;
+  customRelationship?: string;
+  customParentChildContext?: string;
+  relationshipDescription?: string;
+}): { title: string; detail: string } {
+  const customOther =
+    input.customRelationship?.trim() ||
+    input.relationshipDescription?.trim() ||
+    "";
+
+  if (input.relationshipType === "親子") {
+    const role =
+      input.parentChildRole === "其他親子情境" &&
+      input.customParentChildContext?.trim()
+        ? input.customParentChildContext.trim()
+        : input.parentChildRole ?? "尚未說明位置";
+    return {
+      title: "親子關係",
+      detail: `你的位置：${role}`,
+    };
+  }
+
+  if (input.relationshipType === "父母") {
+    return {
+      title: "父母",
+      detail: "對方是你的父母",
+    };
+  }
+
+  if (input.relationshipType === "其他" && customOther) {
+    return {
+      title: "其他關係",
+      detail: customOther,
+    };
+  }
+
+  return {
+    title: input.relationshipType,
+    detail: `對方與你的關係：${input.relationshipType}`,
+  };
 }
 
 export function replyStyleLabel(style: ReplyStyle): string {

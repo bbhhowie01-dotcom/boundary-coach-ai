@@ -2,6 +2,7 @@
 
 export type RelationshipType =
   | "父母"
+  | "親子"
   | "伴侶"
   | "前任"
   | "親戚"
@@ -10,6 +11,15 @@ export type RelationshipType =
   | "主管"
   | "客戶"
   | "其他";
+
+/** 使用者在親子關係中的位置 */
+export type ParentChildRole =
+  | "我是子女，訊息來自父母"
+  | "我是父母，訊息來自子女"
+  | "我是媽媽，訊息來自子女"
+  | "我是爸爸，訊息來自子女"
+  | "我是成年子女，訊息來自父母"
+  | "其他親子情境";
 
 export type BodySensation =
   | "呼吸有點急"
@@ -86,21 +96,7 @@ export type WorryConcern =
 
 export type ReplyStyle = "gentle" | "rational" | "boundary" | "minimal";
 
-export type CoachStageId =
-  | 1
-  | 2
-  | 3
-  | 4
-  | 5
-  | 6
-  | 7
-  | 8
-  | 9
-  | 10
-  | 11
-  | 12
-  | 13
-  | 14;
+export type CoachStageId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export type CoachStageKey =
   | "catch"
@@ -109,23 +105,26 @@ export type CoachStageKey =
   | "emotion_companion"
   | "emotion_awareness"
   | "emotion_source"
-  | "self_understanding"
   | "self_advocacy"
-  | "mutual_understanding"
-  | "boundary"
-  | "message_analysis"
-  | "reply_style"
-  | "formal_reply"
-  | "closing";
+  | "comprehensive_insights";
 
 export interface CoachSessionInput {
   relationshipType: RelationshipType;
+  /** 選擇「其他」時的自訂關係描述 */
+  customRelationship?: string;
+  /** @deprecated 請使用 customRelationship；保留相容舊資料 */
   relationshipDescription?: string;
+  /** 選擇「親子」時，使用者在關係中的位置 */
+  parentChildRole?: ParentChildRole;
+  /** 選擇「其他親子情境」時的自訂描述 */
+  customParentChildContext?: string;
   /** 令人不舒服的訊息來自誰 */
   senderName: string;
   /** 回覆時使用的稱謂 */
   addressTerm: string;
   message: string;
+  /** 使用者自由敘述的背景、感受與立場（第一優先資料來源） */
+  userFreeInput?: string;
 }
 
 export interface CoachSessionResponses {
@@ -160,7 +159,9 @@ export type CoachAiAction =
   | "mutual_understanding"
   | "message_analysis"
   | "emotion_followup"
-  | "formal_reply";
+  | "formal_reply"
+  | "comprehensive_insights"
+  | "reply_options";
 
 /** 適合以純文字串流輸出的 action */
 export type CoachStreamAction =
@@ -200,12 +201,40 @@ export interface EmotionFollowupResult {
   message: string;
 }
 
+export interface ComprehensiveInsightsReplyOptions {
+  gentle: string;
+  rational: string;
+  boundary: string;
+  short: string;
+}
+
+export interface ComprehensiveInsightsResult {
+  openingSupport: string;
+  heardSummary: string[];
+  selfStatement: string;
+  emotionSource: string;
+  userNeeds: string[];
+  otherSideNeeds: string[];
+  conflictCore: string;
+  messagePattern: string[];
+  boundaryReminder: string;
+  /** 僅在使用者主動要求時才會有 */
+  replyOptions?: ComprehensiveInsightsReplyOptions;
+  coachNote: string;
+}
+
+export interface ReplyOptionsResult {
+  replyOptions: ComprehensiveInsightsReplyOptions;
+}
+
 export type CoachAiData =
   | SelfUnderstandingResult
   | MutualUnderstandingResult
   | MessageAnalysisResult
   | FormalReplyResult
-  | EmotionFollowupResult;
+  | EmotionFollowupResult
+  | ComprehensiveInsightsResult
+  | ReplyOptionsResult;
 
 export interface CoachAiResponse {
   success: true;
@@ -227,4 +256,5 @@ export interface JourneyAiCache {
   /** 依風格快取的正式回覆，方便對照其他版本 */
   formalReplies?: FormalRepliesCache;
   emotionFollowup?: EmotionFollowupResult;
+  comprehensiveInsights?: ComprehensiveInsightsResult;
 }

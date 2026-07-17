@@ -14,6 +14,8 @@ const VALID_ACTIONS: CoachAiAction[] = [
   "mutual_understanding",
   "message_analysis",
   "formal_reply",
+  "comprehensive_insights",
+  "reply_options",
 ];
 
 function isValidSession(session: unknown): session is CoachSession {

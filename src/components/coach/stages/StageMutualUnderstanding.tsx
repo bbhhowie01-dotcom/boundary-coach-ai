@@ -30,7 +30,7 @@ export function StageMutualUnderstanding({
     requested.current = true;
     void (async () => {
       const data = await run("mutual_understanding", session);
-      if (data && "userNeeds" in data) {
+      if (data && "summary" in data && "otherNeeds" in data) {
         onCached(data);
       }
     })();

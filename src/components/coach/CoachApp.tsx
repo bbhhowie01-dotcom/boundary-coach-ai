@@ -1,28 +1,24 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import {
+  ComfortSoundProvider,
+  useComfortSound,
+} from "@/components/coach/ComfortSoundContext";
+import {
+  ComfortSoundMiniBar,
+} from "@/components/coach/ComfortSoundSelector";
 import { HomeForm, type HomeFormValues } from "@/components/coach/HomeForm";
 import { SoftButton } from "@/components/coach/SoftButton";
 import { StageBodyCare } from "@/components/coach/stages/StageBodyCare";
-import { StageBoundary } from "@/components/coach/stages/StageBoundary";
 import { StageCatch } from "@/components/coach/stages/StageCatch";
-import { StageClosing } from "@/components/coach/stages/StageClosing";
 import { StageEmotionAwareness } from "@/components/coach/stages/StageEmotionAwareness";
 import { StageEmotionCompanion } from "@/components/coach/stages/StageEmotionCompanion";
 import { StageEmotionSource } from "@/components/coach/stages/StageEmotionSource";
-import { StageFormalReply } from "@/components/coach/stages/StageFormalReply";
-import { StageMessageAnalysis } from "@/components/coach/stages/StageMessageAnalysis";
-import { StageMutualUnderstanding } from "@/components/coach/stages/StageMutualUnderstanding";
-import { StageReplyStyle } from "@/components/coach/stages/StageReplyStyle";
+import { StageInsights } from "@/components/coach/stages/StageInsights";
 import { StageSelfAdvocacy } from "@/components/coach/stages/StageSelfAdvocacy";
-import { StageSelfUnderstanding } from "@/components/coach/stages/StageSelfUnderstanding";
 import { StageSettling } from "@/components/coach/stages/StageSettling";
-import type {
-  BodySensation,
-  CoachSession,
-  JourneyAiCache,
-  ReplyStyle,
-} from "@/types/coach";
+import type { BodySensation, CoachSession, JourneyAiCache } from "@/types/coach";
 
 type View = "home" | "journey";
 
@@ -34,34 +30,60 @@ function createSessionId() {
 }
 
 export function CoachApp() {
+  return (
+    <ComfortSoundProvider>
+      <CoachAppInner />
+    </ComfortSoundProvider>
+  );
+}
+
+function CoachAppInner() {
+  const { stopAndReset } = useComfortSound();
   const [view, setView] = useState<View>("home");
   const [stage, setStage] = useState(1);
   const [session, setSession] = useState<CoachSession | null>(null);
   const [aiCache, setAiCache] = useState<JourneyAiCache>({});
 
   const goNext = useCallback(() => {
-    setStage((s) => Math.min(s + 1, 14));
+    setStage((s) => Math.min(s + 1, 8));
   }, []);
 
   const goBack = useCallback(() => {
-    setStage((s) => {
-      if (s <= 1) {
-        setView("home");
-        return 1;
-      }
-      return s - 1;
-    });
-  }, []);
+    if (stage <= 1) {
+      void stopAndReset();
+      setView("home");
+      setStage(1);
+      return;
+    }
+    if (stage === 8) {
+      setAiCache((c) => ({ ...c, comprehensiveInsights: undefined }));
+    }
+    setStage((s) => s - 1);
+  }, [stage, stopAndReset]);
+
+  const FREE_INPUT_FIELDS: (keyof CoachSession)[] = [
+    "userFreeInput",
+    "selfAdvocacy",
+    "message",
+    "mostImpactfulLine",
+    "worryOther",
+    "firstFeelingOther",
+    "touchPointOther",
+  ];
 
   function handleStart(data: HomeFormValues) {
     setSession((prev) => ({
       sessionId: prev?.sessionId ?? createSessionId(),
       startedAt: prev?.startedAt ?? new Date().toISOString(),
       relationshipType: data.relationshipType,
-      relationshipDescription: data.relationshipDescription,
+      parentChildRole: data.parentChildRole,
+      customRelationship: data.customRelationship,
+      customParentChildContext: data.customParentChildContext,
+      relationshipDescription: data.customRelationship,
       senderName: data.senderName,
       addressTerm: data.addressTerm,
       message: data.message,
+      userFreeInput: data.userFreeInput,
       bodySensations: prev?.bodySensations ?? [],
       firstFeelings: prev?.firstFeelings ?? [],
       firstFeelingOther: prev?.firstFeelingOther,
@@ -81,6 +103,7 @@ export function CoachApp() {
   }
 
   function handleRestart() {
+    void stopAndReset();
     setView("home");
     setStage(1);
     setSession(null);
@@ -89,17 +112,34 @@ export function CoachApp() {
 
   function patchSession(patch: Partial<CoachSession>) {
     setSession((prev) => (prev ? { ...prev, ...patch } : prev));
+    if (
+      Object.keys(patch).some((key) =>
+        FREE_INPUT_FIELDS.includes(key as keyof CoachSession),
+      )
+    ) {
+      setAiCache((c) => ({ ...c, comprehensiveInsights: undefined }));
+    }
   }
 
   const homeInitial = session
     ? {
         relationshipType: session.relationshipType,
-        relationshipDescription: session.relationshipDescription,
+        parentChildRole: session.parentChildRole,
+        customRelationship:
+          session.customRelationship ?? session.relationshipDescription,
+        customParentChildContext: session.customParentChildContext,
         senderName: session.senderName,
         addressTerm: session.addressTerm,
         message: session.message,
+        userFreeInput: session.userFreeInput,
       }
     : null;
+
+  const hasFreeInput =
+    Boolean(session?.userFreeInput?.trim()) ||
+    Boolean(session?.selfAdvocacy?.trim());
+
+  const showMiniBar = view === "journey" && stage !== 2;
 
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-10 sm:px-6 lg:px-8">
@@ -112,7 +152,7 @@ export function CoachApp() {
 
         {view === "journey" && session && (
           <>
-            {stage > 1 && stage < 14 && (
+            {stage > 1 && stage < 8 && (
               <div className="mb-4 flex justify-end">
                 <SoftButton variant="ghost" onClick={handleRestart}>
                   先停在這裡
@@ -189,94 +229,31 @@ export function CoachApp() {
             )}
 
             {stage === 7 && (
-              <StageSelfUnderstanding
-                session={session}
-                cached={aiCache.selfUnderstanding}
-                onCached={(selfUnderstanding) =>
-                  setAiCache((c) => ({ ...c, selfUnderstanding }))
-                }
-                onContinue={goNext}
-                onBack={goBack}
-              />
-            )}
-
-            {stage === 8 && (
               <StageSelfAdvocacy
                 value={session.selfAdvocacy ?? ""}
+                allowSkip={hasFreeInput}
                 onChange={(selfAdvocacy) => patchSession({ selfAdvocacy })}
                 onContinue={goNext}
                 onBack={goBack}
               />
             )}
 
-            {stage === 9 && (
-              <StageMutualUnderstanding
+            {stage === 8 && (
+              <StageInsights
                 session={session}
-                cached={aiCache.mutualUnderstanding}
-                onCached={(mutualUnderstanding) =>
-                  setAiCache((c) => ({ ...c, mutualUnderstanding }))
+                cached={aiCache.comprehensiveInsights}
+                onCached={(comprehensiveInsights) =>
+                  setAiCache((c) => ({ ...c, comprehensiveInsights }))
                 }
-                onContinue={goNext}
+                onRestart={handleRestart}
                 onBack={goBack}
               />
-            )}
-
-            {stage === 10 && (
-              <StageBoundary onContinue={goNext} onBack={goBack} />
-            )}
-
-            {stage === 11 && (
-              <StageMessageAnalysis
-                session={session}
-                cached={aiCache.messageAnalysis}
-                onCached={(messageAnalysis) =>
-                  setAiCache((c) => ({ ...c, messageAnalysis }))
-                }
-                onContinue={goNext}
-                onBack={goBack}
-              />
-            )}
-
-            {stage === 12 && (
-              <StageReplyStyle
-                selectedStyle={session.selectedReplyStyle}
-                senderName={session.senderName}
-                addressTerm={session.addressTerm}
-                onStyleChange={(selectedReplyStyle: ReplyStyle) =>
-                  patchSession({ selectedReplyStyle })
-                }
-                onContinue={goNext}
-                onBack={goBack}
-              />
-            )}
-
-            {stage === 13 && (
-              <StageFormalReply
-                session={session}
-                cachedReplies={aiCache.formalReplies}
-                onStyleChange={(selectedReplyStyle: ReplyStyle) =>
-                  patchSession({ selectedReplyStyle })
-                }
-                onReplyCached={(style, reply) =>
-                  setAiCache((c) => ({
-                    ...c,
-                    formalReplies: {
-                      ...c.formalReplies,
-                      [style]: reply,
-                    },
-                  }))
-                }
-                onContinue={goNext}
-                onBack={goBack}
-              />
-            )}
-
-            {stage === 14 && (
-              <StageClosing onRestart={handleRestart} onBack={goBack} />
             )}
           </>
         )}
       </div>
+
+      {showMiniBar && <ComfortSoundMiniBar />}
 
       <footer className="relative z-10 mt-16 pb-4 text-center text-xs leading-6 text-warm-gray/80">
         這裡是陪伴與守護，不是診斷，也不能取代專業心理諮商。

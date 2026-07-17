@@ -4,6 +4,8 @@ import type {
   CoachStreamAction,
   ReplyStyle,
 } from "@/types/coach";
+import { COMPREHENSIVE_INSIGHTS_PROMPT, REPLY_OPTIONS_PROMPT } from "@/lib/prompts/comprehensive";
+import { buildComprehensiveContext } from "@/lib/session/freeInput";
 import {
   EMOTION_FOLLOWUP_PROMPT,
   FORMAL_REPLY_PROMPT,
@@ -11,53 +13,11 @@ import {
   MUTUAL_UNDERSTANDING_PROMPT,
   SELF_UNDERSTANDING_PROMPT,
 } from "@/lib/prompts/system";
-import {
-  formatSelectedWithOther,
-  replyStyleLabel,
-} from "@/lib/stages/staticContent";
-
-function formatRelationship(session: CoachSession): string {
-  if (session.relationshipType === "其他" && session.relationshipDescription) {
-    return session.relationshipDescription;
-  }
-  return session.relationshipType;
-}
+import { replyStyleLabel } from "@/lib/stages/staticContent";
 
 export function buildSessionContext(session: CoachSession): string {
-  const lines = [
-    `關係：${formatRelationship(session)}`,
-    `訊息來自：${session.senderName}`,
-    `回覆稱謂：${session.addressTerm}`,
-    `收到的訊息（僅供後期階段參考，前期請勿分析）：`,
-    `"""`,
-    session.message,
-    `"""`,
-  ];
+  const lines = [buildComprehensiveContext(session)];
 
-  if (session.bodySensations.length > 0) {
-    lines.push(`身體感受：${session.bodySensations.join("、")}`);
-  }
-  if (session.firstFeelings.length > 0) {
-    lines.push(
-      `第一時間感受：${formatSelectedWithOther(session.firstFeelings, session.firstFeelingOther)}`,
-    );
-  }
-  if (session.mostImpactfulLine) {
-    lines.push(`最在意的話：${session.mostImpactfulLine}`);
-  }
-  if (session.touchPoints.length > 0) {
-    lines.push(
-      `觸動點：${formatSelectedWithOther(session.touchPoints, session.touchPointOther)}`,
-    );
-  }
-  if (session.worries.length > 0) {
-    lines.push(
-      `最擔心的事：${formatSelectedWithOther(session.worries, session.worryOther)}`,
-    );
-  }
-  if (session.selfAdvocacy) {
-    lines.push(`想替自己說的話：${session.selfAdvocacy}`);
-  }
   if (session.selectedReplyStyle) {
     lines.push(
       `選定回覆風格：${replyStyleLabel(session.selectedReplyStyle)}（${session.selectedReplyStyle}）`,
@@ -107,8 +67,28 @@ export function buildActionUserPrompt(
 訊息來自：${session.senderName}
 稱謂：${session.addressTerm.trim()}
 
-請撰寫正式回覆。務必先真誠理解與感謝，再進入自己的表達。使用上述稱謂開頭。`;
+請撰寫正式回覆。務必先真誠理解與感謝，再進入自己的表達。使用上述稱謂開頭。
+每一則回覆都必須帶入使用者自由輸入中的至少一個具體元素。`;
     }
+
+    case "comprehensive_insights":
+      return `${context}
+
+請產出完整陪伴洞察報告（不要包含回覆建議 replyOptions）。`;
+
+    case "reply_options":
+      return `${context}
+
+${
+  userInput?.trim()
+    ? `使用者補充說明（請優先納入新一版回覆）：
+"""
+${userInput.trim()}
+"""
+`
+    : ""
+}
+請產出四種回覆建議。`;
 
     default:
       return context;
@@ -127,6 +107,10 @@ export function getActionTaskPrompt(action: CoachAiAction): string {
       return MESSAGE_ANALYSIS_PROMPT;
     case "formal_reply":
       return FORMAL_REPLY_PROMPT;
+    case "comprehensive_insights":
+      return COMPREHENSIVE_INSIGHTS_PROMPT;
+    case "reply_options":
+      return REPLY_OPTIONS_PROMPT;
   }
 }
 

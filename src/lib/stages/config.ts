@@ -39,51 +39,15 @@ export const STAGE_CONFIGS: CoachStageConfig[] = [
   },
   {
     id: 7,
-    key: "self_understanding",
-    title: "自我理解",
-    requiresAi: true,
-  },
-  {
-    id: 8,
     key: "self_advocacy",
     title: "替自己說話",
     requiresAi: false,
   },
   {
-    id: 9,
-    key: "mutual_understanding",
-    title: "雙方理解",
+    id: 8,
+    key: "comprehensive_insights",
+    title: "陪伴整理",
     requiresAi: true,
-  },
-  {
-    id: 10,
-    key: "boundary",
-    title: "界線建立",
-    requiresAi: false,
-  },
-  {
-    id: 11,
-    key: "message_analysis",
-    title: "訊息理解",
-    requiresAi: true,
-  },
-  {
-    id: 12,
-    key: "reply_style",
-    title: "回應風格",
-    requiresAi: false,
-  },
-  {
-    id: 13,
-    key: "formal_reply",
-    title: "正式回覆",
-    requiresAi: true,
-  },
-  {
-    id: 14,
-    key: "closing",
-    title: "陪伴總結",
-    requiresAi: false,
   },
 ];
 

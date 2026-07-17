@@ -10,10 +10,12 @@ import type {
   CoachAiData,
   CoachSession,
   CoachStreamAction,
+  ComprehensiveInsightsResult,
   EmotionFollowupResult,
   FormalReplyResult,
   MessageAnalysisResult,
   MutualUnderstandingResult,
+  ReplyOptionsResult,
   SelfUnderstandingResult,
 } from "@/types/coach";
 
@@ -84,6 +86,46 @@ function parseAiData(action: CoachAiAction, content: string): CoachAiData {
           ? data.possibleMisunderstandings
           : [],
         conflictFocus: data.conflictFocus,
+      };
+    }
+    case "comprehensive_insights": {
+      const data = parsed as ComprehensiveInsightsResult;
+      if (
+        !data?.openingSupport ||
+        !Array.isArray(data.heardSummary) ||
+        !data.selfStatement
+      ) {
+        throw new Error("AI 回傳格式不完整");
+      }
+      return {
+        openingSupport: data.openingSupport,
+        heardSummary: data.heardSummary.filter(Boolean),
+        selfStatement: data.selfStatement,
+        emotionSource: data.emotionSource ?? "",
+        userNeeds: Array.isArray(data.userNeeds) ? data.userNeeds : [],
+        otherSideNeeds: Array.isArray(data.otherSideNeeds)
+          ? data.otherSideNeeds
+          : [],
+        conflictCore: data.conflictCore ?? "",
+        messagePattern: Array.isArray(data.messagePattern)
+          ? data.messagePattern
+          : [],
+        boundaryReminder: data.boundaryReminder ?? "",
+        coachNote: data.coachNote ?? "",
+      };
+    }
+    case "reply_options": {
+      const data = parsed as ReplyOptionsResult;
+      if (!data?.replyOptions) {
+        throw new Error("AI 回傳格式不完整");
+      }
+      return {
+        replyOptions: {
+          gentle: data.replyOptions.gentle ?? "",
+          rational: data.replyOptions.rational ?? "",
+          boundary: data.replyOptions.boundary ?? "",
+          short: data.replyOptions.short ?? "",
+        },
       };
     }
     default:

@@ -6,6 +6,7 @@ import { SoftButton } from "@/components/coach/SoftButton";
 
 type Props = {
   value: string;
+  allowSkip?: boolean;
   onChange: (value: string) => void;
   onContinue: () => void;
   onBack?: () => void;
@@ -13,12 +14,13 @@ type Props = {
 
 export function StageSelfAdvocacy({
   value,
+  allowSkip = false,
   onChange,
   onContinue,
   onBack,
 }: Props) {
   return (
-    <JourneyShell stageId={8} title="替自己說話" onBack={onBack}>
+    <JourneyShell stageId={7} title="替自己說話" onBack={onBack}>
       <CompanionBubble>
         {`如果有一個真正理解你的人坐在旁邊，
 你希望對方知道什麼？
@@ -38,7 +40,10 @@ export function StageSelfAdvocacy({
       />
 
       <div className="flex justify-center">
-        <SoftButton onClick={onContinue} disabled={!value.trim()}>
+        <SoftButton
+          onClick={onContinue}
+          disabled={!value.trim() && !allowSkip}
+        >
           慢慢繼續
         </SoftButton>
       </div>

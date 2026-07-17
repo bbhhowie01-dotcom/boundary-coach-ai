@@ -1,6 +1,7 @@
 "use client";
 
 import { BreathGuide } from "@/components/coach/BreathGuide";
+import { ComfortSoundSelector } from "@/components/coach/ComfortSoundSelector";
 import { CompanionBubble } from "@/components/coach/CompanionBubble";
 import { JourneyShell } from "@/components/coach/JourneyShell";
 import { OptionChip } from "@/components/coach/OptionChip";
@@ -40,6 +41,8 @@ export function StageBodyCare({ selected, onChange, onContinue, onBack }: Props)
       </div>
 
       <CompanionBubble>{CARE_TIPS.join("\n")}</CompanionBubble>
+
+      <ComfortSoundSelector />
 
       <BreathGuide />
 
